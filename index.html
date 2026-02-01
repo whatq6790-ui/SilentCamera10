@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Silent Camera</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+    <!-- アイコン定義 -->
+    <svg style="display: none;">
+        <symbol id="icon-flash" viewBox="0 0 24 24">
+            <path d="M7 2v11h3v9l7-12h-4l4-8z" fill="currentColor" />
+        </symbol>
+        <symbol id="icon-flash-off" viewBox="0 0 24 24">
+            <path d="M7 2v11h3v9l7-12h-4l4-8z" fill="none" stroke="currentColor" stroke-width="2" />
+            <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" />
+        </symbol>
+        <symbol id="icon-live" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+            <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />
+            <line x1="12" y1="2" x2="12" y2="4" stroke="currentColor" stroke-width="2" />
+            <line x1="2" y1="12" x2="4" y2="12" stroke="currentColor" stroke-width="2" />
+            <line x1="20" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="2" />
+            <line x1="12" y1="20" x2="12" y2="22" stroke="currentColor" stroke-width="2" />
+        </symbol>
+        <symbol id="icon-timer" viewBox="0 0 24 24">
+            <path
+                d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0 2C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"
+                fill="currentColor" />
+            <path d="M12 12V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </symbol>
+        <symbol id="icon-filter" viewBox="0 0 24 24">
+            <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+            <circle cx="15" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+            <circle cx="12" cy="17" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+        </symbol>
+        <symbol id="icon-switch" viewBox="0 0 24 24">
+            <path d="M4 12a8 8 0 0 1 8-8V1.5L16.5 6 12 10.5V8a6 6 0 1 0 6 6h2a8 8 0 0 1-16-2z" fill="currentColor" />
+        </symbol>
+        <symbol id="icon-close" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor" />
+        </symbol>
+        <symbol id="icon-delete" viewBox="0 0 24 24">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                fill="currentColor" />
+        </symbol>
+        <symbol id="icon-share" viewBox="0 0 24 24">
+            <path d="M16 5l-4-4 -4 4h3v10h2V5h3zm2 9v8H6v-8H4v8c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2v-8h-2z"
+                fill="currentColor" />
+        </symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </symbol>
+    </svg>
+
+    <div id="app">
+        <!-- カメラビュー -->
+        <div class="camera-view">
+            <video id="camera-feed" autoplay playsinline muted></video>
+            <canvas id="photo-canvas" style="display: none;"></canvas>
+            <div id="flash-overlay"></div>
+        </div>
+
+        <!-- 上部コントロール -->
+        <div class="top-controls">
+            <button id="flash-toggle" class="icon-btn">
+                <svg width="24" height="24">
+                    <use href="#icon-flash" />
+                </svg>
+                <!-- <span class="status-indicator">OFF</span> 不要かも？iOSは色で示すことが多い -->
+            </button>
+            <button id="live-photo" class="icon-btn" style="opacity: 0.5;">
+                <svg width="24" height="24">
+                    <use href="#icon-live" />
+                </svg>
+            </button>
+            <button id="timer-toggle" class="icon-btn">
+                <svg width="24" height="24">
+                    <use href="#icon-timer" />
+                </svg>
+            </button>
+            <button id="filter-toggle" class="icon-btn">
+                <svg width="24" height="24">
+                    <use href="#icon-filter" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- モードセレクター -->
+        <div class="mode-selector">
+            <div class="modes-container">
+                <span class="mode">タイムラプス</span>
+                <span class="mode">スロー</span>
+                <span class="mode">ビデオ</span>
+                <span class="mode active">写真</span>
+                <span class="mode">ポートレート</span>
+                <span class="mode">パノラマ</span>
+            </div>
+        </div>
+
+        <!-- 下部コントロール -->
+        <div class="bottom-controls">
+            <div class="thumbnail-container" id="gallery-btn">
+                <img id="last-photo-thumb" src="" alt="">
+            </div>
+
+            <button id="shutter-btn"></button>
+
+            <button id="camera-switch-btn" class="icon-btn glass-btn">
+                <svg width="28" height="28" style="transform: rotate(90deg);">
+                    <use href="#icon-switch" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- ギャラリーモーダル -->
+        <div id="gallery-modal" class="modal">
+            <div class="modal-header">
+                <button id="gallery-select-mode-btn">選択</button>
+                <span class="modal-title">ギャラリー</span>
+                <button id="gallery-close-btn" class="icon-btn-text">
+                    <svg width="20" height="20">
+                        <use href="#icon-close" />
+                    </svg>
+                </button>
+            </div>
+            <div id="gallery-grid" class="gallery-grid">
+                <!-- 写真がここに追加される -->
+            </div>
+            <div id="gallery-actions" class="gallery-actions hidden">
+                <button id="download-selected-btn" disabled>
+                    <svg width="24" height="24">
+                        <use href="#icon-download" />
+                    </svg>
+                </button>
+                <div class="selected-count">0枚選択</div>
+                <button id="delete-selected-btn" disabled>
+                    <svg width="24" height="24">
+                        <use href="#icon-delete" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 写真プレビューモーダル（単体表示用） -->
+        <div id="photo-preview-modal" class="modal">
+            <button id="preview-close-btn" class="close-overlay">
+                <svg width="24" height="24">
+                    <use href="#icon-close" />
+                </svg>
+            </button>
+            <img id="preview-image" src="" alt="Preview">
+            <div class="preview-actions">
+                <button id="preview-share-btn" class="icon-btn">
+                    <svg width="24" height="24">
+                        <use href="#icon-share" />
+                    </svg>
+                </button>
+                <button id="preview-delete-btn" class="icon-btn" style="color: #ff3b30;">
+                    <svg width="24" height="24">
+                        <use href="#icon-delete" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

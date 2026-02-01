@@ -1,0 +1,387 @@
+:root {
+    --app-height: 100dvh;
+    --safe-area-top: env(safe-area-inset-top, 20px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 20px);
+    --shutter-size: 72px;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #000;
+    color: #fff;
+    overflow: hidden;
+    height: var(--app-height);
+    width: 100vw;
+}
+
+#app {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* カメラビュー */
+.camera-view {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#camera-feed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#flash-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s;
+}
+
+/* 上部コントロール */
+.top-controls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: calc(var(--safe-area-top) + 10px) 20px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent);
+    z-index: 10;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.icon-btn .status-indicator {
+    font-size: 10px;
+    margin-left: 2px;
+}
+
+/* モードセレクター */
+.mode-selector {
+    position: absolute;
+    bottom: calc(var(--safe-area-bottom) + 120px);
+    left: 0;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    background: transparent;
+    pointer-events: none;
+    /* 下の要素を触れるように調整が必要だが、今回は簡易実装 */
+}
+
+.modes-container {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.mode {
+    color: rgba(255, 255, 255, 0.6);
+    padding: 5px 10px;
+    transition: color 0.2s;
+}
+
+.mode.active {
+    color: #ffcc00;
+    /* iOSの黄色 */
+}
+
+/* 下部コントロール */
+.bottom-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: calc(var(--safe-area-bottom) + 120px);
+    background: rgba(0, 0, 0, 0.8);
+    /* iOSの実機に合わせて少し黒背景を入れる */
+    padding-bottom: var(--safe-area-bottom);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 10;
+}
+
+/* サムネイルボタン */
+.thumbnail-container {
+    width: 48px;
+    height: 48px;
+    background: #333;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#last-photo-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* シャッターボタン */
+#shutter-btn {
+    width: var(--shutter-size);
+    height: var(--shutter-size);
+    border-radius: 50%;
+    background: #fff;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    /* 外枠を少し透過 */
+    background-clip: padding-box;
+    /* ボーダーの内側に背景を収める */
+    position: relative;
+    cursor: pointer;
+    outline: none;
+}
+
+#shutter-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(var(--shutter-size) - 10px);
+    height: calc(var(--shutter-size) - 10px);
+    background: #fff;
+    /* iOSは内側も白 */
+    border-radius: 50%;
+    border: 2px solid #000;
+    /* 内側の境界線 */
+}
+
+#shutter-btn:active {
+    transform: scale(0.95);
+    background: #ccc;
+}
+
+/* カメラ切り替えボタン */
+#camera-switch-btn {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ギャラリーモーダル */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 20;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal.open {
+    transform: translateY(0);
+}
+
+.modal-header {
+    padding: calc(var(--safe-area-top) + 10px) 16px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 17px;
+}
+
+.gallery-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* 3列 */
+    gap: 2px;
+    align-content: start;
+}
+
+.gallery-item {
+    aspect-ratio: 1;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    /* デフォルトはカーソルなし、選択モード等で変わるかも */
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 選択モード時のスタイル */
+.gallery-item.selecting {
+    opacity: 0.7;
+}
+
+.gallery-item.selected {
+    opacity: 1;
+    border: 3px solid #007aff;
+}
+
+.gallery-item .check-icon {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    color: #fff;
+    background: #007aff;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    display: none;
+}
+
+.gallery-item .check-icon svg {
+    stroke: #fff;
+}
+
+.gallery-item.selected .check-icon {
+    display: flex;
+}
+
+/* ギャラリーアクションバー */
+.gallery-actions {
+    padding: 20px;
+    background: rgba(20, 20, 20, 0.95);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: calc(var(--safe-area-bottom) + 20px);
+}
+
+.gallery-actions.hidden {
+    display: none;
+}
+
+.gallery-actions button {
+    background: none;
+    border: none;
+    color: #007aff;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.gallery-actions button:disabled {
+    color: #555;
+    pointer-events: none;
+}
+
+#delete-selected-btn {
+    color: #ff3b30;
+}
+
+/* プレビューモーダル */
+#photo-preview-modal {
+    background: #000;
+    justify-content: center;
+    align-items: center;
+}
+
+#preview-image {
+    max-width: 100%;
+    max-height: 80%;
+    object-fit: contain;
+}
+
+.preview-actions {
+    position: absolute;
+    bottom: calc(var(--safe-area-bottom) + 20px);
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
+
+.preview-actions button {
+    background: rgba(50, 50, 50, 0.5);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    backdrop-filter: blur(10px);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.close-overlay {
+    position: absolute;
+    top: calc(var(--safe-area-top) + 20px);
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 30;
+}
