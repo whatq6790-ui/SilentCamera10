@@ -322,12 +322,59 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewShareBtn = document.getElementById('preview-share-btn');
     const previewDeleteBtn = document.getElementById('preview-delete-btn');
     let currentPreviewKey = null;
+    let touchStartX = 0;
+    let touchEndX = 0;
 
     function openPreview(key) {
         currentPreviewKey = key;
         const dataUrl = localStorage.getItem(key);
         previewImage.src = dataUrl;
         previewModal.classList.add('open');
+    }
+
+    // スワイプ検出
+    previewModal.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    previewModal.addEventListener('touchmove', (e) => {
+        // スワイプ中の挙動（オプション）
+    }, { passive: true });
+
+    previewModal.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+
+    function handleSwipe() {
+        const threshold = 50; // スワイプとみなす距離
+        if (touchEndX < touchStartX - threshold) {
+            // 左スワイプ -> 次の画像（古い方）
+            navigatePreview(1);
+        } else if (touchEndX > touchStartX + threshold) {
+            // 右スワイプ -> 前の画像（新しい方）
+            navigatePreview(-1);
+        }
+    }
+
+    function navigatePreview(direction) {
+        const keys = getAllImageKeys();
+        const currentIndex = keys.indexOf(currentPreviewKey);
+
+        if (currentIndex === -1) return;
+
+        const nextIndex = currentIndex + direction;
+
+        if (nextIndex >= 0 && nextIndex < keys.length) {
+            const nextKey = keys[nextIndex];
+            openPreview(nextKey);
+
+            // 簡単なアニメーション効果（フェード）
+            previewImage.style.opacity = '0';
+            setTimeout(() => {
+                previewImage.style.opacity = '1';
+            }, 100);
+        }
     }
 
     previewCloseBtn.addEventListener('click', () => {
